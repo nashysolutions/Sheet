@@ -1,6 +1,8 @@
 # Sheet
 
-An action sheet or a workflow of view controllers presented as a single action sheet. All can be assembled using interface builder and minimal code.
+Cool pop ups assembled using interface builder and minimal code.
+
+![](https://user-images.githubusercontent.com/64097812/112761116-83705700-8ff1-11eb-9b50-a698b0a601cf.gif)
 
 ## Usage
 
