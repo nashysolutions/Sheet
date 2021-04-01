@@ -2,7 +2,11 @@
 
 Cool pop ups assembled using interface builder and minimal code.
 
-![](https://user-images.githubusercontent.com/64097812/112761116-83705700-8ff1-11eb-9b50-a698b0a601cf.gif)
+<img src="https://user-images.githubusercontent.com/64097812/112761116-83705700-8ff1-11eb-9b50-a698b0a601cf.gif" width="187.5"/> | <img src="https://user-images.githubusercontent.com/64097812/113262152-34177880-92c8-11eb-9928-d394451e8f2e.gif" width="187.5"/>
+
+### Just a normal storyboard
+
+![](https://user-images.githubusercontent.com/64097812/113262263-5610fb00-92c8-11eb-982d-29cf94e6ae36.png)
 
 ## Usage
 
