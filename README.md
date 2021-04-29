@@ -27,7 +27,7 @@ final class ViewController: UIViewController {
 To handle touch events outside of the action sheett.
 
 ```swift
-sheetManager.chromeTapped = { [unowned self] in
+sheet.chromeTapped = { [unowned self] in
     self.dismiss(animated: true)
 }
 ```
