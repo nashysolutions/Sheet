@@ -14,14 +14,7 @@ Cool pop ups assembled using interface builder and minimal code.
 final class ViewController: UIViewController {
 
     private let sheet = Sheet(animation: .slideLeft)
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        let action = #selector(tapGestureRecognized(_:))
-        let tapGesture = UITapGestureRecognizer(target: self, action: action)
-        view.addGestureRecognizer(tapGesture)
-    }
-    
+        
     @objc 
     func tapGestureRecognized(_ sender: UITapGestureRecognizer) {
         let storyboard = UIStoryboard(name: "WelcomeSheet", bundle: nil)
