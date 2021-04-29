@@ -13,98 +13,93 @@ Cool pop ups assembled using interface builder and minimal code.
 ```swift
 final class ViewController: UIViewController {
 
-    private let sheetManager = Sheet(animation: .slideLeft)
+    private let sheet = Sheet(animation: .slideLeft)
     
-    private var observer: NSObjectProtocol?
-
     override func viewDidLoad() {
         super.viewDidLoad()
-        observer = NotificationCenter.default.addObserver(
-            forName: .dismiss, 
-            object: nil, 
-            queue: nil) { [weak self] _ in
-                self?.dismiss(animated: true)
-        }
-        sheetManager.chromeTapped = { [unowned self] in
-            self.dismiss(animated: true)
-        }
         let action = #selector(tapGestureRecognized(_:))
         let tapGesture = UITapGestureRecognizer(target: self, action: action)
         view.addGestureRecognizer(tapGesture)
     }
     
-    @objc func tapGestureRecognized(_ sender: UITapGestureRecognizer) {
+    @objc 
+    func tapGestureRecognized(_ sender: UITapGestureRecognizer) {
         let storyboard = UIStoryboard(name: "WelcomeSheet", bundle: nil)
         let viewController = storyboard.instantiateInitialViewController()!
-        sheetManager.show(viewController, above: self)
+        sheet.show(viewController, above: self)
     }
 }
 ```
 
-The notification name `dismiss` is created the typical way. You may create any name you like.
+To handle touch events outside of the action sheett.
+
+```swift
+sheetManager.chromeTapped = { [unowned self] in
+    self.dismiss(animated: true)
+}
+```
+
+To handle dismiss at the end of the workflow, set up an observer at the beginning and post a notification at the end.
 
 ```swift
 extension Notification.Name {
     static let dismiss = Notification.Name(rawValue: "Dismiss")
 }
-``` 
-> Observed: by the controller that presents the action sheet. 
-> Posted: by the last controller in the action sheet sequence (or `didEnterBackground` for example).
 
-Here are a sequence of two actions sheets `WelcomeSheetViewController` being the 1st and `CompleteSheetViewController` being the last.
+NotificationCenter.default.addObserver(
+    forName: .dismiss, 
+    object: nil, 
+    queue: nil) { [weak self] _ in
+        self?.dismiss(animated: true)
+}
+```
+
+This will also give you the opportunity to dismiss from other locations, should you deem it necessary.
 
 ```swift
-final class WelcomeSheetViewController: BaseViewController {
-        
-    @IBAction func startButtonPressed(_ sender: UIButton) {
-        let storyboard = UIStoryboard(name: "CompleteSheet", bundle: nil)
-        let viewController = storyboard.instantiateInitialViewController()!
-        show(viewController, sender: self)
-    }
+func applicationDidEnterBackground(_ application: UIApplication) {
+    NotificationCenter.default.post(
+        name: .dismiss,
+        object: self,
+        userInfo: [dismissSheetAnimatedKey : false]
+    )
 }
+```
 
-final class CompleteSheetViewController: BaseViewController {
-        
-    @IBAction func finishButtonPressed(_ sender: UIButton) {
-        NotificationCenter.default.post(name: .dismiss, object: nil)
-    }
-}
+Responding to size class changes or dynamic type is the responsibility of your view controllers.
 
-class BaseViewController: UIViewController {
+```swift
+final class CompleteSheetViewController: UIViewController {
+
+    @IBOutlet weak var iconImageView: UIImageView!
     
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        view.clipsToBounds = true
-        view.layer.cornerRadius = view.bounds.width * 0.1
-    }
-    
-    override var preferredStatusBarStyle: UIStatusBarStyle {
-        return .lightContent
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        iconImageView.isHidden = (traitCollection.verticalSizeClass == .compact)
     }
     
     override var prefersHomeIndicatorAutoHidden: Bool {
         return true
     }
+    
+    override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.willTransition(to: newCollection, with: coordinator)
+        iconImageView.isHidden = (newCollection.verticalSizeClass == .compact)
+        coordinator.animate(alongsideTransition: { [unowned self] _ in
+            self.view.layoutIfNeeded()
+        }, completion: nil)
+    }
 }
 ```
-> You may create a network of storyboard segue's, each segue pushing via `show` in storyboard or by calling UIKit's `show` `show(:sender:)` in code.
+
+If your view controller workflow uses [func show(_ vc: UIViewContoller, sender: Any?)](https://developer.apple.com/documentation/uikit/uiviewcontroller/1621377-show), then you're good to go.
 
 ```swift
-override func viewWillAppear(_ animated: Bool) {
-    super.viewWillAppear(animated)
-    // iconImageView is an IBOutlet property to a UIImageView embedded in a stack view.
-    iconImageView.isHidden = (traitCollection.verticalSizeClass == .compact)
-}
-
-override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
-    super.willTransition(to: newCollection, with: coordinator)
-    iconImageView.isHidden = (newCollection.verticalSizeClass == .compact)
-    coordinator.animate(alongsideTransition: { [unowned self] _ in
-        self.view.layoutIfNeeded()
-    }, completion: nil)
+@IBAction func startButtonPressed(_ sender: UIButton) {
+    let viewController = UIStoryboard(name: "CompleteSheet", bundle: nil).instantiateInitialViewController()!
+    show(viewController, sender: self)
 }
 ```
-> Make sure your layout works in all environments. The above preview shows a paper plan icon which is hidden in compact height environments.
 
 If you would like to use custom transition animations, instantiate `Sheet` with `.custom` and sublcass `StoryboardSegue`.
 
